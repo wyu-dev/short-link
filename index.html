@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADT.KTN — Pemendek Pautan</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy2: #112240;
+    --gold: #c9a84c;
+    --gold2: #e8c97a;
+    --cream: #f5f0e8;
+    --muted: #8892a4;
+    --success: #4caf7d;
+    --error: #e05c5c;
+    --border: rgba(201,168,76,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--navy);
+    color: var(--cream);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG GRID */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-orb {
+    position: fixed;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+    top: -150px; right: -150px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glow-orb2 {
+    position: fixed;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(10,86,176,0.1) 0%, transparent 70%);
+    bottom: -100px; left: -100px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    padding: 40px 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-mark {
+    width: 48px; height: 48px;
+    border: 2px solid var(--gold);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--gold);
+    letter-spacing: -1px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .logo-mark::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(201,168,76,0.15), transparent);
+  }
+
+  .logo-text h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--cream);
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .logo-text span {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 40px 0 32px;
+    text-align: center;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--gold);
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+  .hero h2 {
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+  }
+  .hero h2 span {
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 400;
+  }
+
+  /* CARD */
+  .card {
+    background: rgba(17,34,64,0.8);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    backdrop-filter: blur(10px);
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* FORM */
+  .field {
+    margin-bottom: 16px;
+  }
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+  .input-wrap .prefix {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  input[type="text"], input[type="url"] {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--cream);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+  }
+  input[type="text"]:focus, input[type="url"]:focus {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.05);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+  }
+  .has-prefix input {
+    padding-left: 145px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    padding: 4px;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .tab.active {
+    background: var(--gold);
+    color: var(--navy);
+  }
+
+  /* BUTTON */
+  .btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    color: var(--navy);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(201,168,76,0.3);
+  }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* RESULT */
+  .result-box {
+    display: none;
+    background: rgba(201,168,76,0.06);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 20px;
+    animation: fadeUp 0.3s ease;
+  }
+  .result-box.show { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-url {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    color: var(--gold2);
+    word-break: break-all;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn-sm {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+  }
+  .btn-copy {
+    background: rgba(201,168,76,0.15);
+    color: var(--gold);
+    border: 1px solid var(--border);
+  }
+  .btn-copy:hover { background: rgba(201,168,76,0.25); }
+  .btn-copy.copied {
+    background: rgba(76,175,125,0.15);
+    color: var(--success);
+    border-color: rgba(76,175,125,0.3);
+  }
+
+  /* QR RESULT */
+  .qr-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-top: 20px;
+  }
+  #qr-canvas-wrap {
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    position: relative;
+    display: inline-block;
+  }
+  #qr-canvas-wrap canvas {
+    display: block;
+  }
+  .qr-logo {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px; height: 48px;
+    border-radius: 8px;
+    background: white;
+    padding: 3px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .qr-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .qr-logo-placeholder {
+    width: 42px; height: 42px;
+    background: var(--navy);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--gold);
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  /* HISTORY */
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .history-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.2s;
+  }
+  .history-item:hover { border-color: var(--border); }
+  .history-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    background: rgba(201,168,76,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .history-info { flex: 1; min-width: 0; }
+  .history-short {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+  .history-long {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+  .history-copy {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 7px;
+    color: var(--muted);
+    padding: 6px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .history-copy:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .empty-state .icon { font-size: 32px; margin-bottom: 10px; }
+
+  /* STATUS MSG */
+  .status-msg {
+    font-size: 13px;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    display: none;
+  }
+  .status-msg.show { display: block; }
+  .status-msg.error {
+    background: rgba(224,92,92,0.1);
+    border: 1px solid rgba(224,92,92,0.3);
+    color: var(--error);
+  }
+  .status-msg.success {
+    background: rgba(76,175,125,0.1);
+    border: 1px solid rgba(76,175,125,0.3);
+    color: var(--success);
+  }
+
+  /* SPINNER */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(10,22,40,0.3);
+    border-top-color: var(--navy);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+  }
+  .spinner.show { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SETUP NOTICE */
+  .setup-notice {
+    background: rgba(201,168,76,0.06);
+    border: 1px dashed rgba(201,168,76,0.3);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .setup-notice h3 {
+    font-size: 13px;
+    color: var(--gold);
+    margin-bottom: 8px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+  }
+  .setup-notice p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .setup-notice code {
+    font-family: 'DM Mono', monospace;
+    background: rgba(255,255,255,0.07);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--cream);
+    font-size: 12px;
+  }
+
+  footer {
+    text-align: center;
+    padding: 40px 0;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+  footer span { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="glow-orb"></div>
+<div class="glow-orb2"></div>
+
+<div class="container">
+
+  <header>
+    <div class="logo-mark">ADT</div>
+    <div class="logo-text">
+      <h1>adt.ktn</h1>
+      <span>PEMENDEK PAUTAN ADTEC KUANTAN</span>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-badge">⚡ Versi Beta</div>
+    <h2>Pautan Pendek.<br><span>Mudah Diingat.</span></h2>
+    <p>Jana pautan ringkas & QR code dalam saat.</p>
+  </div>
+
+  <!-- SETUP NOTICE -->
+  <div class="setup-notice" id="setup-notice">
+    <h3>⚙️ SETUP DIPERLUKAN</h3>
+    <p>
+      Isikan URL Apps Script anda pada baris <code>const APPS_SCRIPT_URL = "..."</code> dalam kod HTML ini.
+      Rujuk fail <strong>appsscript.gs</strong> untuk setup backend Google Sheets.
+    </p>
+  </div>
+
+  <!-- MAIN CARD -->
+  <div class="card">
+    <div class="card-title">🔗 Jana Pautan</div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('shorten')" id="tab-shorten">
+        ✂️ Pendekkan
+      </button>
+      <button class="tab" onclick="switchTab('qr')" id="tab-qr">
+        📱 Jana QR
+      </button>
+    </div>
+
+    <!-- LONG URL INPUT -->
+    <div class="field">
+      <label>PAUTAN ASAL</label>
+      <input type="url" id="long-url" placeholder="https://contoh.com/pautan-yang-sangat-panjang-ini..." />
+    </div>
+
+    <!-- CUSTOM BACK HALF -->
+    <div class="field" id="custom-field">
+      <label>NAMA PENDEK (pilihan)</label>
+      <div class="input-wrap has-prefix">
+        <span class="prefix" id="base-url-prefix">wyu-dev.github.io/s/</span>
+        <input type="text" id="custom-slug" placeholder="contoh: eksa2026" maxlength="30" />
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="main-btn" onclick="handleSubmit()">
+      <span class="spinner" id="btn-spinner"></span>
+      <span id="btn-label">✂️ Pendekkan Pautan</span>
+    </button>
+
+    <div class="status-msg" id="status-msg"></div>
+
+    <!-- SHORTEN RESULT -->
+    <div class="result-box" id="shorten-result">
+      <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:6px;">PAUTAN PENDEK ANDA:</div>
+      <div class="result-url" id="result-url-text"></div>
+      <div class="result-actions">
+        <button class="btn-sm btn-copy" id="copy-btn" onclick="copyResult()">
+          📋 Salin Pautan
+        </button>
+      </div>
+    </div>
+
+    <!-- QR RESULT -->
+    <div class="result-box" id="qr-result">
+      <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:16px;">QR CODE ANDA:</div>
+      <div class="qr-wrap">
+        <div id="qr-canvas-wrap">
+          <div id="qr-code-container"></div>
+          <div class="qr-logo" id="qr-logo">
+            <div class="qr-logo-placeholder" id="qr-logo-inner">ADTEC<br>KTN</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+          <button class="btn-sm btn-copy" onclick="downloadQR()">⬇️ Muat Turun PNG</button>
+          <button class="btn-sm btn-copy" id="copy-qr-url-btn" onclick="copyQRUrl()">📋 Salin URL</button>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)" id="qr-url-label"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY CARD -->
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between;display:flex;align-items:center;">
+      <span style="display:flex;align-items:center;gap:8px;">
+        📂 SEJARAH
+        <span style="font-size:11px;background:rgba(201,168,76,0.15);color:var(--gold);padding:2px 8px;border-radius:100px;" id="history-count">0</span>
+      </span>
+      <button onclick="clearHistory()" style="background:transparent;border:none;color:var(--muted);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;">Padam semua</button>
+    </div>
+    <div class="history-list" id="history-list">
+      <div class="empty-state">
+        <div class="icon">🗂️</div>
+        Tiada sejarah lagi. Jana pautan pertama anda!
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>adt.ktn</span> · ADTEC JTM Kampus Kuantan · Dibina dengan ♥
+  </footer>
+</div>
+
+<script>
+  // =============================================
+  // ⚙️ CONFIG — TUKAR URL INI
+  // =============================================
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5WxldopqH1GVIWPXTC1O6PY4QhvWrZH6P7CBEPwRRUDxXqIXKZYVLcRLgg2D6AFMn/exec";
+  const BASE_SHORT_URL = "https://wyu-dev.github.io/s/"; // tukar ke domain anda
+  const LOGO_URL = ""; // letak URL logo ADTEC PNG di sini, atau kosongkan
+
+  // =============================================
+
+  let currentTab = 'shorten';
+  let currentShortUrl = '';
+  let history = JSON.parse(localStorage.getItem('adtktn_history') || '[]');
+
+  // Check setup
+  if (APPS_SCRIPT_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
+    document.getElementById('setup-notice').style.display = 'block';
+  } else {
+    document.getElementById('setup-notice').style.display = 'none';
+  }
+
+  // Update prefix display
+  document.getElementById('base-url-prefix').textContent = BASE_SHORT_URL.replace('https://','');
+
+  // Load logo if provided
+  if (LOGO_URL) {
+    document.getElementById('qr-logo-inner').innerHTML = `<img src="${LOGO_URL}" alt="logo">`;
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tab-shorten').classList.toggle('active', tab === 'shorten');
+    document.getElementById('tab-qr').classList.toggle('active', tab === 'qr');
+    document.getElementById('custom-field').style.display = tab === 'shorten' ? 'block' : 'none';
+    document.getElementById('btn-label').textContent = tab === 'shorten' ? '✂️ Pendekkan Pautan' : '📱 Jana QR Code';
+    hideResults();
+    clearStatus();
+  }
+
+  function hideResults() {
+    document.getElementById('shorten-result').classList.remove('show');
+    document.getElementById('qr-result').classList.remove('show');
+  }
+
+  function showStatus(msg, type) {
+    const el = document.getElementById('status-msg');
+    el.textContent = msg;
+    el.className = `status-msg show ${type}`;
+  }
+
+  function clearStatus() {
+    document.getElementById('status-msg').className = 'status-msg';
+  }
+
+  function setLoading(val) {
+    const btn = document.getElementById('main-btn');
+    const spinner = document.getElementById('btn-spinner');
+    btn.disabled = val;
+    spinner.classList.toggle('show', val);
+  }
+
+  async function handleSubmit() {
+    const longUrl = document.getElementById('long-url').value.trim();
+    if (!longUrl) { showStatus('❌ Sila masukkan pautan terlebih dahulu.', 'error'); return; }
+    if (!longUrl.startsWith('http')) { showStatus('❌ Pautan mesti bermula dengan http:// atau https://', 'error'); return; }
+
+    clearStatus();
+    hideResults();
+
+    if (currentTab === 'qr') {
+      generateQR(longUrl);
+      return;
+    }
+
+    // Shorten
+    const slug = document.getElementById('custom-slug').value.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '');
+    setLoading(true);
+
+    try {
+      const params = new URLSearchParams({ action: 'shorten', url: longUrl });
+      if (slug) params.append('slug', slug);
+
+      const res = await fetch(`${APPS_SCRIPT_URL}?${params}`);
+      const data = await res.json();
+
+      if (data.error) {
+        showStatus('❌ ' + data.error, 'error');
+      } else {
+        const shortUrl = BASE_SHORT_URL + data.slug;
+        currentShortUrl = shortUrl;
+        document.getElementById('result-url-text').textContent = shortUrl;
+        document.getElementById('shorten-result').classList.add('show');
+        document.getElementById('copy-btn').textContent = '📋 Salin Pautan';
+        document.getElementById('copy-btn').className = 'btn-sm btn-copy';
+        addToHistory(shortUrl, longUrl);
+      }
+    } catch (e) {
+      showStatus('❌ Gagal sambung ke server. Semak URL Apps Script.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function generateQR(url) {
+    const container = document.getElementById('qr-code-container');
+    container.innerHTML = '';
+
+    new QRCode(container, {
+      text: url,
+      width: 200,
+      height: 200,
+      colorDark: '#0a1628',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    document.getElementById('qr-url-label').textContent = url.length > 50 ? url.substring(0, 50) + '...' : url;
+    document.getElementById('copy-qr-url-btn').dataset.url = url;
+    document.getElementById('qr-result').classList.add('show');
+    currentShortUrl = url;
+    addToHistory(url, url, true);
+  }
+
+  function copyResult() {
+    navigator.clipboard.writeText(currentShortUrl).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = '✅ Disalin!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '📋 Salin Pautan';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  function copyQRUrl() {
+    const url = document.getElementById('copy-qr-url-btn').dataset.url || currentShortUrl;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById('copy-qr-url-btn');
+      btn.textContent = '✅ Disalin!';
+      setTimeout(() => { btn.textContent = '📋 Salin URL'; }, 2000);
+    });
+  }
+
+  function downloadQR() {
+    const canvas = document.querySelector('#qr-code-container canvas');
+    if (!canvas) return;
+
+    // Create merged canvas with logo
+    const size = 232; // 200 + 16*2 padding
+    const merged = document.createElement('canvas');
+    merged.width = size; merged.height = size;
+    const ctx = merged.getContext('2d');
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+    ctx.drawImage(canvas, 16, 16, 200, 200);
+
+    // Draw logo box
+    const logoSize = 52;
+    const lx = (size - logoSize) / 2;
+    const ly = (size - logoSize) / 2;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(lx - 4, ly - 4, logoSize + 8, logoSize + 8);
+
+    ctx.fillStyle = '#0a1628';
+    ctx.fillRect(lx, ly, logoSize, logoSize);
+    ctx.fillStyle = '#c9a84c';
+    ctx.font = 'bold 9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('ADTEC', size / 2, ly + 22);
+    ctx.fillText('KTN', size / 2, ly + 35);
+
+    const link = document.createElement('a');
+    link.download = 'qrcode-adtktn.png';
+    link.href = merged.toDataURL('image/png');
+    link.click();
+  }
+
+  function addToHistory(shortUrl, longUrl, isQR = false) {
+    const item = { short: shortUrl, long: longUrl, isQR, time: Date.now() };
+    history.unshift(item);
+    if (history.length > 50) history.pop();
+    localStorage.setItem('adtktn_history', JSON.stringify(history));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    document.getElementById('history-count').textContent = history.length;
+
+    if (history.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">🗂️</div>Tiada sejarah lagi. Jana pautan pertama anda!</div>`;
+      return;
+    }
+
+    list.innerHTML = history.map((item, i) => `
+      <div class="history-item">
+        <div class="history-icon">${item.isQR ? '📱' : '🔗'}</div>
+        <div class="history-info">
+          <div class="history-short">${item.short}</div>
+          <div class="history-long">${item.long}</div>
+        </div>
+        <button class="history-copy" onclick="copyHistoryItem(${i})">Salin</button>
+      </div>
+    `).join('');
+  }
+
+  function copyHistoryItem(i) {
+    navigator.clipboard.writeText(history[i].short).then(() => {
+      const btns = document.querySelectorAll('.history-copy');
+      if (btns[i]) {
+        btns[i].textContent = '✅';
+        setTimeout(() => { btns[i].textContent = 'Salin'; }, 1500);
+      }
+    });
+  }
+
+  function clearHistory() {
+    if (!confirm('Padam semua sejarah?')) return;
+    history = [];
+    localStorage.removeItem('adtktn_history');
+    renderHistory();
+  }
+
+  // Init
+  renderHistory();
+  switchTab('shorten');
+</script>
+</body>
+</html>
