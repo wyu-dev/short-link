@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADT.KTN — Mengalih...</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628;
+    --gold: #c9a84c;
+    --cream: #f5f0e8;
+    --muted: #8892a4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--navy);
+    color: var(--cream);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+  .logo {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--gold);
+    letter-spacing: -1px;
+    position: relative;
+    z-index: 1;
+  }
+  .spinner-ring {
+    width: 48px; height: 48px;
+    border: 3px solid rgba(201,168,76,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    position: relative;
+    z-index: 1;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .msg {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    position: relative;
+    z-index: 1;
+  }
+  .error-box {
+    background: rgba(224,92,92,0.1);
+    border: 1px solid rgba(224,92,92,0.3);
+    border-radius: 12px;
+    padding: 16px 24px;
+    text-align: center;
+    color: #e05c5c;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    max-width: 320px;
+    position: relative;
+    z-index: 1;
+    display: none;
+  }
+  .back-link {
+    color: var(--gold);
+    text-decoration: none;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    position: relative;
+    z-index: 1;
+    display: none;
+  }
+</style>
+</head>
+<body>
+  <div class="logo">adt.ktn</div>
+  <div class="spinner-ring" id="spinner"></div>
+  <div class="msg" id="msg">Mencari pautan...</div>
+  <div class="error-box" id="error-box">Pautan tidak dijumpai atau telah tamat tempoh.</div>
+  <a href="/" class="back-link" id="back-link">← Kembali ke halaman utama</a>
+
+  <script>
+    // =============================================
+    // ⚙️ CONFIG — SAMA SEPERTI index.html
+    // =============================================
+    const APPS_SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
+    // =============================================
+
+    async function redirect() {
+      const path = window.location.pathname;
+      // Support /s/SLUG or direct /SLUG
+      const slug = path.split('/').filter(Boolean).pop();
+
+      if (!slug || slug === 'redirect.html') {
+        showError();
+        return;
+      }
+
+      document.getElementById('msg').textContent = `Mencari "${slug}"...`;
+
+      try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=lookup&slug=${encodeURIComponent(slug)}`);
+        const data = await res.json();
+
+        if (data.url) {
+          document.getElementById('msg').textContent = 'Mengalihkan...';
+          window.location.href = data.url;
+        } else {
+          showError();
+        }
+      } catch (e) {
+        showError();
+      }
+    }
+
+    function showError() {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('msg').style.display = 'none';
+      document.getElementById('error-box').style.display = 'block';
+      document.getElementById('back-link').style.display = 'block';
+    }
+
+    redirect();
+  </script>
+</body>
+</html>
